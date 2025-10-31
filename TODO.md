@@ -7,3 +7,5 @@
 - [x] Register Service Worker in index.html and excel.html
 - [x] Update firebase-logger.js to start/stop updater based on auth state
 - [x] Update service-worker.js to use IndexedDB for offline storage
+- [x] Communicate user auth state to Service Worker via messages
+- [x] Ensure Service Worker runs continuously in background

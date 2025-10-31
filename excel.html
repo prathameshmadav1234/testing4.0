@@ -112,6 +112,13 @@
       navigator.serviceWorker.register('service-worker.js')
         .then((registration) => {
           console.log('Service Worker registered:', registration);
+          // Send user ID to SW when auth state changes
+          const auth = getAuth();
+          onAuthStateChanged(auth, (user) => {
+            if (registration.active) {
+              registration.active.postMessage({ type: 'setUser', userId: user ? user.uid : null });
+            }
+          });
         })
         .catch((error) => {
           console.log('Service Worker registration failed:', error);

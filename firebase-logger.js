@@ -91,7 +91,4 @@ async function uploadStoredLogs() {
   console.log("Uploaded and cleared stored logs");
 }
 
-// Always start updater on load (but stop if not logged in)
-if (currentUser) {
-  startUpdater();
-}
+// Do not start updater here, let Service Worker handle it

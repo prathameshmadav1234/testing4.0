@@ -23,15 +23,21 @@ let currentUser = null;
 let updateTimer = null;
 let lastEntry = null;
 
-auth.onAuthStateChanged((user) => {
-  currentUser = user;
-  if (user) {
-    uploadStoredLogs(); // Upload any stored logs on login
-    startUpdater(); // Start updater when logged in
-  } else {
-    stopUpdater(); // Stop updater when logged out
+// Listen for messages from main thread to set user
+self.addEventListener('message', (event) => {
+  if (event.data.type === 'setUser') {
+    currentUser = event.data.userId ? { uid: event.data.userId } : null;
+    if (currentUser) {
+      uploadStoredLogs(); // Upload any stored logs on login
+      startUpdater(); // Start updater when logged in
+    } else {
+      stopUpdater(); // Stop updater when logged out
+    }
   }
 });
+
+// Start updater always, but only log if user is set
+startUpdater();
 
 async function fetchData() {
   const today = new Date().toISOString().split("T")[0];
