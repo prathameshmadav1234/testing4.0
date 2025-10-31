@@ -23,10 +23,19 @@ let currentUser = null;
 let updateTimer = null;
 let lastEntry = null;
 
+// Load user from IndexedDB on SW start
+loadUserFromIndexedDB().then(user => {
+  currentUser = user;
+  if (currentUser) {
+    startUpdater();
+  }
+});
+
 // Listen for messages from main thread to set user
 self.addEventListener('message', (event) => {
   if (event.data.type === 'setUser') {
     currentUser = event.data.userId ? { uid: event.data.userId } : null;
+    storeUserInIndexedDB(currentUser);
     if (currentUser) {
       uploadStoredLogs(); // Upload any stored logs on login
       startUpdater(); // Start updater when logged in
@@ -36,8 +45,12 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Start updater always, but only log if user is set
-startUpdater();
+// Listen for periodic sync
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'fetch-data') {
+    event.waitUntil(fetchData());
+  }
+});
 
 async function fetchData() {
   const today = new Date().toISOString().split("T")[0];
@@ -139,6 +152,47 @@ function clearIndexedDB() {
     const store = transaction.objectStore('logs');
     store.clear();
   };
+}
+
+function storeUserInIndexedDB(user) {
+  const request = indexedDB.open('esp32Logs', 1);
+  request.onupgradeneeded = (event) => {
+    const db = event.target.result;
+    if (!db.objectStoreNames.contains('user')) {
+      db.createObjectStore('user', { keyPath: 'id' });
+    }
+  };
+  request.onsuccess = (event) => {
+    const db = event.target.result;
+    const transaction = db.transaction(['user'], 'readwrite');
+    const store = transaction.objectStore('user');
+    store.put({ id: 'currentUser', user: user });
+  };
+}
+
+function loadUserFromIndexedDB() {
+  return new Promise((resolve) => {
+    const request = indexedDB.open('esp32Logs', 1);
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+      const transaction = db.transaction(['user'], 'readonly');
+      const store = transaction.objectStore('user');
+      const getRequest = store.get('currentUser');
+      getRequest.onsuccess = () => {
+        resolve(getRequest.result ? getRequest.result.user : null);
+      };
+      getRequest.onerror = () => {
+        resolve(null);
+      };
+    };
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('user')) {
+        db.createObjectStore('user', { keyPath: 'id' });
+      }
+      resolve(null);
+    };
+  });
 }
 
 // Install and activate

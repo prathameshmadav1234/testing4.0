@@ -246,6 +246,16 @@
               registration.active.postMessage({ type: 'setUser', userId: user ? user.uid : null });
             }
           });
+          // Register periodic sync if supported
+          if ('periodicSync' in registration) {
+            registration.periodicSync.register('fetch-data', {
+              minInterval: 10 * 1000 // 10 seconds
+            }).then(() => {
+              console.log('Periodic sync registered');
+            }).catch((error) => {
+              console.log('Periodic sync registration failed:', error);
+            });
+          }
         })
         .catch((error) => {
           console.log('Service Worker registration failed:', error);

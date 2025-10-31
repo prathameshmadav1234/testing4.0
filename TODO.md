@@ -9,3 +9,5 @@
 - [x] Update service-worker.js to use IndexedDB for offline storage
 - [x] Communicate user auth state to Service Worker via messages
 - [x] Ensure Service Worker runs continuously in background
+- [x] Persist user state in IndexedDB for Service Worker restart
+- [x] Register periodic sync for background fetching
