@@ -95,6 +95,7 @@
 
   <div class="button-container">
     <button onclick="downloadCSV()">⬇️ Download Excel (.csv)</button>
+    <button onclick="generateReport()">📊 Generate Auto-Report</button>
     <button onclick="goBack()">⬅ Back to Main Page</button>
     <button onclick="clearLogs()">🗑 Clear Selected Date Logs</button>
   </div>
@@ -140,6 +141,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-functions.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCLAKW51iGzR68EL-ZPWxraFz-NTdNJPqM",
@@ -154,6 +156,7 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
     const auth = getAuth();
+    const functions = getFunctions(app);
 
     const table = document.getElementById("dataTable");
     const datePicker = document.getElementById("datePicker");
@@ -250,6 +253,32 @@
       }
     }
 
+    function generateReport() {
+      if (!currentUser) return alert("Please log in first");
+      const date = datePicker.value;
+      if (!date) return alert("Please select a date");
+
+      // Call Firebase Cloud Function to get download URL
+      const getReportUrlFunction = httpsCallable(functions, 'getReportDownloadUrl');
+      getReportUrlFunction({ date })
+        .then((result) => {
+          if (result.data.downloadUrl) {
+            // Download the report
+            const link = document.createElement("a");
+            link.href = result.data.downloadUrl;
+            link.download = result.data.fileName;
+            link.click();
+            alert("Report downloaded! The report is automatically updated whenever new data is logged.");
+          } else {
+            alert(result.data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error downloading report:", error);
+          alert("Error downloading report: " + error.message);
+        });
+    }
+
     function goBack() {
       window.location.href = "index.html";
     }
@@ -257,6 +286,7 @@
     // Make functions global for onclick
     window.loadLogsByDate = loadLogsByDate;
     window.downloadCSV = downloadCSV;
+    window.generateReport = generateReport;
     window.clearLogs = clearLogs;
     window.goBack = goBack;
 

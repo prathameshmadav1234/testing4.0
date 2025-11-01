@@ -195,6 +195,25 @@ function loadUserFromIndexedDB() {
   });
 }
 
+// Handle messages from main thread
+self.addEventListener('message', (event) => {
+  if (event.data.type === 'setUser') {
+    currentUser = event.data.userId ? { uid: event.data.userId } : null;
+    if (currentUser) {
+      startUpdater();
+    } else {
+      stopUpdater();
+    }
+  }
+});
+
+// Periodic sync for background fetching
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'fetch-data') {
+    event.waitUntil(fetchData());
+  }
+});
+
 // Install and activate
 self.addEventListener('install', (event) => {
   self.skipWaiting();

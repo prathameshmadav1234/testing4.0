@@ -7,6 +7,12 @@
 - [x] Register Service Worker in index.html and excel.html
 - [x] Update firebase-logger.js to start/stop updater based on auth state
 - [x] Update service-worker.js to use IndexedDB for offline storage
+- [x] Create Firebase Cloud Functions for auto-report generation
+- [x] Add Generate Auto-Report button in excel.html
+- [x] Integrate Firebase Functions in excel.html
+- [x] Add scheduled report generation for all users daily
+- [x] Add database trigger to automatically update reports when new logs are added
+- [x] Update generateReport function to download pre-generated reports from Firebase Storage
 - [x] Communicate user auth state to Service Worker via messages
 - [x] Ensure Service Worker runs continuously in background
 - [x] Persist user state in IndexedDB for Service Worker restart
